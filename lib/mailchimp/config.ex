@@ -18,6 +18,12 @@ defmodule Mailchimp.Config do
   @spec api_key!() :: String.t() | no_return
   def api_key!, do: Application.fetch_env!(:mailchimp, :api_key)
 
+  @spec http_timeout() :: integer() | no_return
+  def http_timeout, do: Application.get_env(:mailchimp, :http_timeout, 8000)
+
+  @spec http_recv_timeout() :: integer() | no_return
+  def http_recv_timeout, do: Application.get_env(:mailchimp, :http_recv_timeout, 5000)
+
   @doc """
   Return configured API Version
 

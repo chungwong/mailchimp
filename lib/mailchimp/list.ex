@@ -1,5 +1,6 @@
 defmodule Mailchimp.List do
   alias HTTPoison.Response
+  alias Mailchimp.Config
   alias Mailchimp.HTTPClient
   alias Mailchimp.Link
   alias Mailchimp.Member
@@ -46,7 +47,14 @@ defmodule Mailchimp.List do
   end
 
   def members(%__MODULE__{links: %{"members" => %Link{href: href}}}, query_params) do
-    {:ok, response} = HTTPClient.get(href, [], params: query_params)
+    {:ok, response} =
+      HTTPClient.get(
+        href,
+        [],
+        params: query_params,
+        timeout: Config.http_timeout(),
+        recv_timeout: Config.http_recv_timeout()
+      )
 
     case response do
       %Response{status_code: 200, body: body} ->
@@ -68,7 +76,13 @@ defmodule Mailchimp.List do
       |> String.downcase()
       |> md5
 
-    {:ok, response} = HTTPClient.get(href <> "/#{subscriber_id}")
+    {:ok, response} =
+      HTTPClient.get(
+        href <> "/#{subscriber_id}",
+        [],
+        timeout: Config.http_timeout(),
+        recv_timeout: Config.http_recv_timeout()
+      )
 
     case response do
       %Response{status_code: 200, body: body} ->
@@ -90,7 +104,13 @@ defmodule Mailchimp.List do
       |> String.downcase()
       |> md5
 
-    {:ok, response} = HTTPClient.delete(href <> "/#{subscriber_id}")
+    {:ok, response} =
+      HTTPClient.delete(
+        href <> "/#{subscriber_id}",
+        [],
+        timeout: Config.http_timeout(),
+        recv_timeout: Config.http_recv_timeout()
+      )
 
     case response do
       %Response{status_code: 204} ->
@@ -102,7 +122,13 @@ defmodule Mailchimp.List do
   end
 
   def interest_categories(%__MODULE__{links: %{"interest-categories" => %Link{href: href}}}) do
-    {:ok, response} = HTTPClient.get(href)
+    {:ok, response} =
+      HTTPClient.get(
+        href,
+        [],
+        timeout: Config.http_timeout(),
+        recv_timeout: Config.http_recv_timeout()
+      )
 
     case response do
       %Response{status_code: 200, body: body} ->
@@ -127,7 +153,12 @@ defmodule Mailchimp.List do
       )
       when is_binary(email_address) and is_map(merge_fields) and
              status in [:subscribed, :pending, :unsubscribed, :cleaned] do
-    case HTTPClient.get(href) do
+    case HTTPClient.get(
+           href,
+           [],
+           timeout: Config.http_timeout(),
+           recv_timeout: Config.http_recv_timeout()
+         ) do
       {:ok, %Response{status_code: 200, body: body}} ->
         links = Link.get_links_from_attributes(body)
         href = links["create"].href
@@ -139,7 +170,13 @@ defmodule Mailchimp.List do
             merge_fields: merge_fields
           })
 
-        case HTTPClient.post(href, Poison.encode!(data)) do
+        case HTTPClient.post(
+               href,
+               Poison.encode!(data),
+               [],
+               timeout: Config.http_timeout(),
+               recv_timeout: Config.http_recv_timeout()
+             ) do
           {:ok, %Response{status_code: 200, body: body}} ->
             {:ok, Member.new(body)}
 

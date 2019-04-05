@@ -27,7 +27,11 @@ Put your API key in your *config.exs* file:
 
 ```elixir
 config :mailchimp,
-  api_key: "your api-us10"
+  api_key: "your api-us10",
+
+  # optional
+  http_timeout: 8_000, #default 8000ms
+  http_recv_timeout: 5_000, # default 5000ms
 ```
 
 or
