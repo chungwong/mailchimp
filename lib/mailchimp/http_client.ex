@@ -23,41 +23,47 @@ defmodule Mailchimp.HTTPClient do
       "https://us12.api.mailchimp.com/3.0/test"
 
   """
-  case Mix.env do
+  case Mix.env() do
     :test ->
       def process_url(url) do
-        IO.puts url
+        IO.puts(url)
         _process_url(url)
       end
+
     _ ->
       def process_url(url), do: _process_url(url)
   end
+
   def _process_url(url) do
-    root = Config.root_endpoint!
+    root = Config.root_endpoint!()
+
     cond do
       String.starts_with?(url, root) ->
         url
+
       String.starts_with?(url, "/") ->
         root <> String.slice(url, 1, 1000)
+
       true ->
         root <> url
     end
   end
 
   # Make it easier to mock Responses
-  case Mix.env do
+  case Mix.env() do
     :test ->
       def process_response_body(body) do
         body
         |> _process_response_body
-        |> Mailchimp.MockServer.dump
+        |> Mailchimp.MockServer.dump()
       end
+
     _ ->
-      def process_response_body(body), do:  _process_response_body(body)
+      def process_response_body(body), do: _process_response_body(body)
   end
 
   defp _process_response_body(body) do
-    if (body === "") do
+    if body === "" do
       body
     else
       Poison.decode!(body, keys: :atoms)
@@ -75,7 +81,7 @@ defmodule Mailchimp.HTTPClient do
 
   """
   def process_request_headers(headers) do
-    encoded_api_key = Base.encode64(":#{Config.api_key!}")
+    encoded_api_key = Base.encode64(":#{Config.api_key!()}")
     [{"Authorization", "Basic #{encoded_api_key}"} | headers]
   end
 end
